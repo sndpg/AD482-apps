@@ -1,16 +1,13 @@
 package com.redhat.wallet;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.Produces;
-
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.kstream.Consumed;
-import org.apache.kafka.streams.kstream.KStream;
-import org.apache.kafka.streams.kstream.Produced;
 
+import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Produces;
 
 @ApplicationScoped
 public class PaymentsStream {
@@ -23,12 +20,12 @@ public class PaymentsStream {
 
     @Produces
     public Topology buildTopology() {
-        // TODO: Create the stream from the "payments" topic
-
-        // TODO: use foreach to print each message
-
-        // TODO: process the stream and send the result to the "large-payments" topic
-
-        // TODO: return the topology
+        StreamsBuilder streamsBuilder = new StreamsBuilder();
+        streamsBuilder
+            .stream("payments", Consumed.with(keySerde, valueSerde))
+            .peek((key, value) -> System.out.println(key + ": " + value))
+            .filter((key, value) -> value >= 1000)
+            .to("large-payments");
+        return streamsBuilder.build();
     }
 }
