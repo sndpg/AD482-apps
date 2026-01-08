@@ -45,7 +45,7 @@ public class VehiclePositionsStream {
         second.groupBy((key, value) -> value.vehicleId, Grouped.with(Serdes.Integer(), vehiclePositionSerde))
             .count()
             .toStream()
-            .foreach((vehicleId, count) -> System.out.printf("Vehicle: %s Positions count %s\n\n", vehicleId, count));
+            .foreach((vehicleId, count) -> System.out.printf("Vehicle: %d Positions count %d\n\n", vehicleId, count));
 
         return builder.build();
     }
