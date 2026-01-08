@@ -26,20 +26,23 @@ public class VehiclePositionsStream {
     public Topology buildTopology() {
         StreamsBuilder builder = new StreamsBuilder();
 
-        // TODO: create serde to deserialize VehiclePosition messages
+        ObjectMapperSerde<VehiclePosition> vehiclePositionSerde = new ObjectMapperSerde<>(
+            VehiclePosition.class
+        );
 
-        // TODO: Create the stream from the "vehicle-positions" topic
+        var stream = builder.stream("vehicle-positions", Consumed.with(stringSerde, vehiclePositionSerde));
 
-        // TODO: print stream values
+        stream.peek((key, value) -> System.out.printf("vehicle position: %s=%s\n", key, value))
+            .map((key, value) -> {
+                var elevationInFeet = value.elevation * 3.28084;
+                return KeyValue.pair(value.vehicleId, elevationInFeet);
+            })
+            .to("vehicle-feet-elevations");
 
-        // TODO: map positions to elevations in feet
-        // and send the stream to "vehicle-feet-elevations" topic
-
-        // TODO: group positions by vehicle id
-
-        // TODO: count positions by vehicle
-
-        // TODO: print the count values
+        stream.groupBy((key, value) -> value.vehicleId, Grouped.with(Serdes.Integer(), vehiclePositionSerde))
+            .count()
+            .toStream()
+            .foreach((vehicleId, count) -> System.out.printf("Vehicle: %s Positions count %s\n\n", vehicleId, count));
 
         return builder.build();
     }
