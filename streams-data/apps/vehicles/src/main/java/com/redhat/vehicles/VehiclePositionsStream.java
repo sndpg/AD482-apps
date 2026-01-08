@@ -37,7 +37,10 @@ public class VehiclePositionsStream {
                 var elevationInFeet = value.elevation * 3.28084;
                 return KeyValue.pair(value.vehicleId, elevationInFeet);
             })
-            .to("vehicle-feet-elevations");
+            .to(
+                "vehicle-feet-elevations",
+                Produced.with(Serdes.Integer(), Serdes.Double())
+            );
 
         stream.groupBy((key, value) -> value.vehicleId, Grouped.with(Serdes.Integer(), vehiclePositionSerde))
             .count()
