@@ -30,9 +30,8 @@ public class VehiclePositionsStream {
             VehiclePosition.class
         );
 
-        var stream = builder.stream("vehicle-positions", Consumed.with(stringSerde, vehiclePositionSerde));
-
-        stream.peek((key, value) -> System.out.printf("vehicle position: %s=%s\n", key, value))
+        var first = builder.stream("vehicle-positions", Consumed.with(stringSerde, vehiclePositionSerde));
+        first.peek((key, value) -> System.out.printf("vehicle position: %s=%s\n", key, value))
             .map((key, value) -> {
                 var elevationInFeet = value.elevation * 3.28084;
                 return KeyValue.pair(value.vehicleId, elevationInFeet);
@@ -42,7 +41,8 @@ public class VehiclePositionsStream {
                 Produced.with(Serdes.Integer(), Serdes.Double())
             );
 
-        stream.groupBy((key, value) -> value.vehicleId, Grouped.with(Serdes.Integer(), vehiclePositionSerde))
+        var second = builder.stream("vehicle-positions", Consumed.with(stringSerde, vehiclePositionSerde));
+        second.groupBy((key, value) -> value.vehicleId, Grouped.with(Serdes.Integer(), vehiclePositionSerde))
             .count()
             .toStream()
             .foreach((vehicleId, count) -> System.out.printf("Vehicle: %s Positions count %s\n\n", vehicleId, count));
